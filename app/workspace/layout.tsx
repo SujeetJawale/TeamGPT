@@ -4,7 +4,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   return (
     <div className='flex h-[calc(100vh-70px)]'>
       <Sidebar />
-      <div className='flex-1'>{children}</div>
+      <div className='flex-1 h-[calc(100vh-70px)]'>{children}</div>
     </div>
   );
 }

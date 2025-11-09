@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
 import { pusherClient } from "@/lib/pusher";
+import { FiArrowDownCircle } from "react-icons/fi";
 
 type Msg = {
   id?: string;
@@ -19,20 +20,23 @@ export default function ChatWindow({ workspaceId }: { workspaceId: string }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
 
-  // 🧩 Load saved messages from DB (with authors)
+  // 🧩 Load saved messages
   useEffect(() => {
     const loadMessages = async () => {
       const res = await fetch(`/api/messages?workspaceId=${workspaceId}`);
       if (res.ok) {
         const data: Msg[] = await res.json();
         setMessages(data);
+        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "auto" }), 50);
       }
     };
     loadMessages();
   }, [workspaceId]);
 
-  // 🔔 Subscribe to real-time updates with Pusher
+  // 🔔 Real-time subscription
   useEffect(() => {
     if (!workspaceId) return;
 
@@ -42,6 +46,7 @@ export default function ChatWindow({ workspaceId }: { workspaceId: string }) {
     channel.bind("new-message", (message: Msg) => {
       console.log("📩 received new message via pusher", message);
       setMessages((prev) => [...prev, message]);
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     });
 
     return () => {
@@ -49,6 +54,19 @@ export default function ChatWindow({ workspaceId }: { workspaceId: string }) {
       pusherClient.unsubscribe(`workspace-${workspaceId}`);
     };
   }, [workspaceId]);
+
+  // 🧠 Track scroll position
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+      setIsAtBottom(atBottom);
+    };
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // 🚀 Send a message
   const send = async (text: string) => {
@@ -66,9 +84,10 @@ export default function ChatWindow({ workspaceId }: { workspaceId: string }) {
       },
     };
     setMessages((prev) => [...prev, optimistic]);
+    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
 
     try {
-      // 1️⃣ Save user message (same as before)
+      // Save user message
       const savedRes = await fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -83,7 +102,7 @@ export default function ChatWindow({ workspaceId }: { workspaceId: string }) {
       if (savedRes.ok) saved = await savedRes.json();
       if (saved) setMessages((prev) => [...prev.slice(0, -1), saved]);
 
-      // 2️⃣ Fetch AI streaming reply
+      // Stream AI reply
       const res = await fetch("/api/chat/stream", {
         method: "POST",
         body: JSON.stringify({
@@ -108,19 +127,24 @@ export default function ChatWindow({ workspaceId }: { workspaceId: string }) {
             if (last.role === "assistant") last.content = aiText;
             return updated;
           });
+          if (isAtBottom) chatEndRef.current?.scrollIntoView({ behavior: "auto" });
         }
       }
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 150);
     }
   };
 
   return (
-    <div className='flex flex-col h-full'>
+    <div className='flex flex-col h-[calc(100vh-130px)] bg-gradient-to-b from-white via-gray-100 to-gray-150'>
       {/* Chat area */}
-      <div className='flex-1 overflow-y-auto px-4 py-3 space-y-2  h-full'>
+      <div
+        ref={scrollContainerRef}
+        className='flex-1 h-[90vh] overflow-y-auto px-4 sm:px-6 py-4 space-y-3 scroll-smooth'
+      >
         {messages.map((m, i) => (
           <MessageBubble
             key={m.id ?? i}
@@ -139,12 +163,27 @@ export default function ChatWindow({ workspaceId }: { workspaceId: string }) {
           </div>
         )}
 
-        {error && <div className='text-sm text-red-600'>{error}</div>}
+        {error && <div className='text-sm text-red-600 text-center'>⚠️ {error}</div>}
+
+        <div ref={chatEndRef} />
       </div>
 
+      {/* Scroll-to-bottom button */}
+      {!isAtBottom && (
+        <button
+          onClick={() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" })}
+          className='absolute bottom-24 right-6 bg-white border border-gray-300 shadow-sm hover:shadow-md rounded-full p-2 text-gray-600 hover:text-[#24CFA6] transition'
+          title='Scroll to latest'
+        >
+          <FiArrowDownCircle size={22} />
+        </button>
+      )}
+
       {/* Input area */}
-      <div className='border-t p-3 bg-white'>
-        <ChatInput onSend={send} />
+      <div className='border-t bg-white/80 backdrop-blur-md'>
+        <div className=' mx-auto px-4 sm:px-6 py-3'>
+          <ChatInput onSend={send} />
+        </div>
       </div>
     </div>
   );

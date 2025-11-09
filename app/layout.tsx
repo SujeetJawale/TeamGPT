@@ -25,10 +25,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang='en'>
       <body>
         <SessionWrapper>
-          <header className='border-b p-4 flex justify-between'>
-            <div className='font-semibold'>TeamGPT</div>
-
-            <AuthButton />
+          <header className='border-b p-5 flex justify-between items-center shadow-sm sticky h-[70px]'>
+            <div className='font-bold text-2xl pl-16 bg-gradient-to-r from-[#24CFA6] to-blue-600 text-transparent bg-clip-text'>
+              TeamGPT
+            </div>
+            <div className='pr-12'>
+              <AuthButton />
+            </div>
           </header>
           {children}
         </SessionWrapper>

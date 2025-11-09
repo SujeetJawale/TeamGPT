@@ -44,3 +44,8 @@ next-env.d.ts
 !.env.example
 .next
 node_modules
+
+# Ignore large media
+public/teamgpt-bg.mp4
+*.mp4public/teamgpt-bg.mp4
+*.mp4

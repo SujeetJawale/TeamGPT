@@ -21,7 +21,7 @@ export default function MessageBubble({
       <div
         className={`max-w-[75%] rounded-2xl p-3 whitespace-pre-wrap ${
           isSelf
-            ? "bg-blue-600 text-white rounded-br-none"
+            ? "bg-blue-400 text-white rounded-br-none"
             : role === "assistant"
             ? "bg-gray-200 text-gray-800 rounded-bl-none"
             : "bg-green-200 text-gray-800 rounded-bl-none"
