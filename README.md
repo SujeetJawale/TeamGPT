@@ -1,7 +1,7 @@
 # TeamGPT  
 ### Collaborative AI Chat Platform — Built with Next.js + TypeScript + OpenAI  
 
-🎥 **[Watch the Demo on YouTube](https://youtube.com/your-video-link)**  
+🎥 **[Watch the Demo on YouTube](https://www.youtube.com/watch?v=fVEfi5YIJ3A)**  
 
 **TeamGPT** is a real-time, collaborative AI chat workspace designed for teams.  
 It enables multiple users to brainstorm, chat with AI, and manage projects together — all in one beautifully designed interface.  
