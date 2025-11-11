@@ -28,10 +28,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const { role, content, workspaceId } = await req.json();
+  const socketId = req.headers.get("x-socket-id") ?? undefined;
+  const body = await req.json();
+  const { role, content, workspaceId, tempId } = body;
   const userId = (session.user as any)?.id ?? null;
 
-  // 1️⃣  Save message in DB
+  if (!workspaceId || !content?.trim()) {
+    return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+  }
+
+  // 1️⃣ Save message in DB
   const message = await prisma.message.create({
     data: {
       role,
@@ -44,19 +50,25 @@ export async function POST(req: Request) {
     },
   });
 
-  // 2️⃣  Broadcast event to all clients in this workspace
+  // 2️⃣ Broadcast to others (not sender)
+
   try {
-    await pusherServer.trigger(`workspace-${workspaceId}`, "new-message", {
-      id: message.id,
-      role: message.role,
-      content: message.content,
-      workspaceId: message.workspaceId,
-      user: message.user ? { id: message.user.id, name: message.user.name, image: message.user.image } : null,
-    });
+    // ✅ Only broadcast human/user messages
+    if (role === "user") {
+      await pusherServer.trigger(
+        `workspace-${workspaceId}`,
+        "new-message",
+        {
+          ...message,
+          tempId,
+        },
+        { socket_id: socketId }
+      );
+    }
   } catch (err) {
-    console.error("Pusher trigger failed:", err);
+    console.error("❌ Pusher trigger failed:", err);
   }
 
-  // 3️⃣  Return to sender
-  return NextResponse.json(message);
+  // 3️⃣ Return message to sender
+  return NextResponse.json({ ...message, tempId });
 }

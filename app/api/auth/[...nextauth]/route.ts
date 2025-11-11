@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import Github from "next-auth/providers/github";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 
@@ -9,6 +10,10 @@ const handler = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    Github({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     }),
   ],
   session: { strategy: "database" },
@@ -32,7 +37,7 @@ const handler = NextAuth({
 
   callbacks: {
     async redirect({ baseUrl }) {
-      return `${baseUrl}/workspace`;
+      return `${baseUrl}/`;
     },
     async session({ session, user }) {
       if (session.user) (session.user as any).id = user.id;

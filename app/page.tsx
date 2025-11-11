@@ -1,17 +1,21 @@
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { FiArrowRight } from "react-icons/fi";
+import { FaStar } from "react-icons/fa";
+import ThemeToggle from "./components/ThemeToggle";
 
 export default function Home() {
   const { data: session, status } = useSession();
 
+  const router = useRouter();
+
   if (status === "loading") {
     return (
-      <main className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <main className='min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0f1117] transition-colors'>
         <p className='text-gray-500 animate-pulse'>Checking session...</p>
       </main>
     );
@@ -20,9 +24,11 @@ export default function Home() {
   // ✅ Authenticated view
   if (status === "authenticated") {
     return (
-      <main className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 text-center p-6'>
-        <h1 className='text-3xl font-semibold mb-2'>Welcome back, {session.user?.name?.split(" ")[0]} 👋</h1>
-        <p className='text-gray-600 mb-6'>
+      <main className='min-h-[92.8vh] flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-[#0f1117] dark:to-[#1a1d24] text-center p-6 transition-colors'>
+        <h1 className='text-3xl font-semibold mb-2 text-gray-800 dark:text-gray-100'>
+          Welcome back, {session.user?.name?.split(" ")[0]} 👋
+        </h1>
+        <p className='text-gray-600 dark:text-gray-400 mb-6'>
           You’re signed in to <span className='font-semibold'>TeamGPT</span>.
         </p>
         <Link
@@ -35,91 +41,191 @@ export default function Home() {
     );
   }
 
-  // ✅ Landing page (unauthenticated)
+  // ✅ Unauthenticated Landing Page
   return (
-    <main className='h-screen flex flex-col start bg-gradient-to-br from-blue-50 via-white to-indigo-100 text-center'>
-      {/* Hero Section */}
-      <section className='flex flex-col items-center justify-center h-[calc(100vh-42vh)] py-20 px-6 relative overflow-hidden'>
-        {/* Subtle Animated Background */}
+    <main className='relative text-center text-gray-900 dark:text-gray-100 transition-colors overflow-x-hidden'>
+      {/* Fixed Navbar */}
+      <nav className='fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-[#0f1117]/80 backdrop-blur-md border-b border-gray-200 dark:border-[#2a2f3a] transition-colors'>
+        <div className='max-w-6xl mx-auto flex justify-between items-center p-4'>
+          <h1 className='text-2xl font-bold bg-gradient-to-r from-[#24CFA6] to-blue-600 text-transparent bg-clip-text'>
+            TeamGPT
+          </h1>
+          <div className='flex items-center gap-4'>
+            <ThemeToggle /> {/* ✅ Theme toggle added here */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              onClick={() => router.push("/auth/signin")} // ✅ redirect instead of signIn("github")
+              className='flex items-center justify-center gap-2 px-4 py-3 bg-[#24CFA6] text-white text-base font-medium rounded-lg shadow-md hover:shadow-lg hover:bg-[#1fb994] transition z-10'
+            >
+              Launch App <FiArrowRight />
+            </motion.button>
+          </div>
+        </div>
+      </nav>
+
+      {/* HERO SECTION */}
+      <section className='relative flex flex-col items-center justify-center h-[50vh] overflow-hidden px-6'>
+        {/* Background Video */}
         <video
           autoPlay
           muted
           loop
-          className='absolute top-0 left-0 w-full h-full object-cover bg-center opacity-10'
+          playsInline
+          className='absolute top-0 left-0 w-full h-[50vh] object-cover opacity-10 dark:opacity-20'
         >
           <source src='/teamgpt-bg.mp4' type='video/mp4' />
         </video>
 
+        {/* Hero Content */}
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className='text-6xl md:text-7xl font-bold mb-3 text-gray-800 bg-gradient-to-r from-[#24CFA6] to-blue-600 text-transparent bg-clip-text'
+          className='text-6xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-[#24CFA6] to-blue-600 bg-clip-text text-transparent'
         >
           TeamGPT
         </motion.h1>
-
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className='text-gray-600 mb-10 text-xl max-w-2xl'
+          transition={{ duration: 0.8 }}
+          className='text-xl max-w-2xl mx-auto text-gray-600 dark:text-gray-300 mb-10'
         >
-          Collaborate, chat, and innovate with AI – together in one workspace.
+          Collaborate, chat, and innovate with AI – empower your team to build smarter, together.
         </motion.p>
 
-        {/* Sign In Buttons */}
-        <div className='flex flex-col sm:flex-row gap-4 z-10'>
-          <button
-            onClick={() => signIn("github")}
-            className='flex items-center px-5 py-3 bg-gray-700 text-[1.5vh] text-white rounded-lg shadow-sm hover:bg-gray-900 transition'
-          >
-            TRY NOW
-          </button>
-        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          transition={{ type: "spring", stiffness: 200 }}
+          onClick={() => signIn("github")}
+          className='flex items-center justify-center gap-2 px-6 py-3 bg-[#24CFA6] text-white text-lg font-medium rounded-lg shadow-md hover:shadow-lg hover:bg-[#1fb994] transition z-10'
+        >
+          Try TeamGPT Now <FiArrowRight />
+        </motion.button>
       </section>
 
-      {/* Product Info Section */}
-      <section className='px-8 py-16 bg-white h-[30vh]'>
-        <h2 className='text-4xl font-semibold mb-4 bg-gradient-to-r from-[#24CFA6] to-blue-600 bg-clip-text text-transparent'>
-          Why TeamGPT?
+      {/* WHY SECTION */}
+      <section className='flex flex-col justify-center items-center h-[50vh] bg-gray-50 dark:bg-[#12161e] transition px-6'>
+        <h2 className='text-4xl font-bold mb-10 bg-gradient-to-r from-[#24CFA6] to-blue-600 text-transparent bg-clip-text'>
+          Why Choose TeamGPT?
         </h2>
-        <div className='grid md:grid-cols-3 gap-8'>
+        <div className='grid md:grid-cols-3 gap-8 max-w-6xl'>
           {[
             {
-              title: "Collaborate Seamlessly",
-              desc: "Invite your team and work together on shared AI chats and prompts.",
+              title: "AI Collaboration",
+              desc: "Bring your team and AI together — brainstorm, plan, and build faster with shared context.",
             },
             {
-              title: "Real-time Sync",
-              desc: "Built with Pusher for instant updates — no refresh needed.",
+              title: "Real-Time Updates",
+              desc: "Stay in sync with instant updates and push notifications using Pusher integration.",
             },
             {
-              title: "Smart & Secure",
-              desc: "Powered by OpenAI and secured via NextAuth — your data stays safe.",
+              title: "Secure Workspaces",
+              desc: "Manage access and security with role-based permissions and NextAuth authentication.",
             },
           ].map((card, i) => (
             <motion.div
               key={i}
               whileHover={{ scale: 1.05 }}
-              className='p-6 rounded-2xl shadow-md border bg-white hover:shadow-lg transition'
+              className='p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-[#2a2f3a] bg-white dark:bg-[#1c1f27] hover:shadow-xl transition'
             >
               <h3 className='text-xl font-semibold mb-3 text-[#24CFA6]'>{card.title}</h3>
-              <p className='text-gray-600'>{card.desc}</p>
+              <p className='text-gray-600 dark:text-gray-300'>{card.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className='p-6 h-[6vh] border-t bg-gray-50 text-gray-600 flex flex-col md:flex-row items-center justify-between'>
-        <p>
-          © {new Date().getFullYear()} TeamGPT — Made by{" "}
-          <span className='font-medium text-[#24CFA6]'>Sujeet Jawale</span>
+      {/* HOW IT WORKS SECTION */}
+      <section className='flex flex-col justify-center items-center h-[50vh] bg-gray-200 dark:bg-[#0f1117] border-t border-gray-200 dark:border-[#2a2f3a] transition px-6'>
+        <h2 className='text-4xl font-bold mb-10 bg-gradient-to-r from-[#24CFA6] to-blue-600 text-transparent bg-clip-text'>
+          How It Works
+        </h2>
+        <div className='max-w-5xl grid md:grid-cols-3 gap-10'>
+          {[
+            {
+              step: "1",
+              title: "Create Workspace",
+              desc: "Set up a workspace for your team. Invite collaborators instantly.",
+            },
+            {
+              step: "2",
+              title: "Collaborate with AI",
+              desc: "Chat, brainstorm, and document — all inside shared AI-powered threads.",
+            },
+            {
+              step: "3",
+              title: "Stay Synced",
+              desc: "Everyone stays aligned with real-time updates across every project.",
+            },
+          ].map((step, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ y: -5 }}
+              className='p-6 rounded-xl border border-gray-200 dark:border-[#2a2f3a] bg-gray-50 dark:bg-[#12161e] shadow-sm hover:shadow-lg transition'
+            >
+              <div className='text-4xl font-bold text-[#24CFA6] mb-3'>{step.step}</div>
+              <h4 className='text-lg font-semibold mb-2 text-[#24CFA6]'>{step.title}</h4>
+              <p className='text-gray-600 dark:text-gray-400'>{step.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* TESTIMONIALS SECTION */}
+      <section className='flex flex-col justify-center items-center h-[50vh] bg-gray-50 dark:bg-[#12161e] border-t border-gray-200 dark:border-[#2a2f3a] transition px-6'>
+        <h2 className='text-4xl font-bold mb-10 bg-gradient-to-r from-[#24CFA6] to-blue-600 text-transparent bg-clip-text'>
+          Loved by Teams Everywhere
+        </h2>
+        <div className='max-w-6xl grid md:grid-cols-3 gap-8'>
+          {[1, 2, 3].map((_, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ y: -5 }}
+              className='p-6 bg-white dark:bg-[#1c1f27] rounded-xl shadow-md border border-gray-200 dark:border-[#2a2f3a] transition'
+            >
+              <p className='text-gray-600 dark:text-gray-300 italic mb-3'>
+                “TeamGPT transformed how our team collaborates. It feels like having an AI teammate.”
+              </p>
+              <div className='flex items-center gap-2'>
+                <div className='text-[#24CFA6] flex'>
+                  {[...Array(5)].map((_, idx) => (
+                    <FaStar key={idx} />
+                  ))}
+                </div>
+                <span className='text-sm text-gray-500 dark:text-gray-400'>– Product Team</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* FOOTER SECTION */}
+      <footer className='flex flex-col justify-center items-center h-[20vh] bg-gray-300 dark:bg-[#0f1117] border-t border-gray-200 dark:border-[#2a2f3a] text-gray-600 dark:text-gray-400 transition'>
+        <h3 className='text-2xl font-bold mb-3 bg-gradient-to-r from-[#24CFA6] to-blue-600 text-transparent bg-clip-text'>
+          TeamGPT
+        </h3>
+        <p className='text-sm mb-5'>The future of collaborative AI workspaces — build smarter together.</p>
+        <div className='flex gap-6 text-sm mb-3'>
+          <Link href='/features' className='hover:text-[#24CFA6] transition'>
+            Features
+          </Link>
+          <Link href='/contact' className='hover:text-[#24CFA6] transition'>
+            Contact
+          </Link>
+          <a
+            href='https://github.com/SujeetJawale/TeamGPT'
+            target='_blank'
+            className='hover:text-[#24CFA6] transition'
+          >
+            GitHub
+          </a>
+        </div>
+        <p className='text-xs'>
+          © {new Date().getFullYear()} TeamGPT — Built by{" "}
+          <span className='text-[#24CFA6] font-medium'>Sujeet Jawale</span>
         </p>
-        <Link href='/contact' className='text-[#24CFA6] font-medium hover:underline mt-2 md:mt-0'>
-          Contact Us
-        </Link>
       </footer>
     </main>
   );
